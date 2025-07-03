@@ -11,6 +11,7 @@ import codecs
 import functools
 import glob
 import inspect
+import json
 import logging
 import os
 import random
@@ -1405,7 +1406,10 @@ def _setHTTPExtraHeaders():
         debugMsg = "setting extra HTTP headers"
         logger.debug(debugMsg)
 
-        conf.headers = conf.headers.split("\n") if "\n" in conf.headers else conf.headers.split("\\n")
+        if "\\n" in conf.headers:
+            conf.headers = conf.headers.replace("\\r\\n", "\\n").split("\\n")
+        else:
+            conf.headers = conf.headers.replace("\r\n", "\n").split("\n")
 
         for headerValue in conf.headers:
             if not headerValue.strip():
@@ -2541,11 +2545,12 @@ def _checkTor():
     logger.info(infoMsg)
 
     try:
-        page, _, _ = Request.getPage(url="https://check.torproject.org/", raise404=False)
-    except SqlmapConnectionException:
-        page = None
+        page, _, _ = Request.getPage(url="https://check.torproject.org/api/ip", raise404=False)
+        tor_status = json.loads(page)
+    except (SqlmapConnectionException, TypeError, ValueError):
+        tor_status = None
 
-    if not page or "Congratulations" not in page:
+    if not tor_status or not tor_status.get("IsTor"):
         errMsg = "it appears that Tor is not properly set. Please try using options '--tor-type' and/or '--tor-port'"
         raise SqlmapConnectionException(errMsg)
     else:

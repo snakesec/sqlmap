@@ -378,9 +378,9 @@ def main():
             logger.critical(errMsg)
             raise SystemExit
 
-        elif "AttributeError: unable to access item" in excMsg and re.search(r"3\.11\.\d+a", sys.version):
+        elif "AttributeError:" in excMsg and re.search(r"3\.11\.\d+a", sys.version):
             errMsg = "there is a known issue when sqlmap is run with ALPHA versions of Python 3.11. "
-            errMsg += "Please downgrade to some stable Python version"
+            errMsg += "Please download a stable Python version"
             logger.critical(errMsg)
             raise SystemExit
 
@@ -510,6 +510,11 @@ def main():
 
         elif "database disk image is malformed" in excMsg:
             errMsg = "local session file seems to be malformed. Please rerun with '--flush-session'"
+            logger.critical(errMsg)
+            raise SystemExit
+
+        elif "'cryptography' package is required":
+            errMsg = "third-party library 'cryptography' is required"
             logger.critical(errMsg)
             raise SystemExit
 
